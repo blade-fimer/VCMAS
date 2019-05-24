@@ -1,0 +1,7 @@
+# huobi
+
+System time: curl http://api.huobi.pro/v1/common/timestamp
+
+||huobi|okex|
+|---|---|---|
+|system time|curl http://api.huobi.pro/v1/common/timestamp||
