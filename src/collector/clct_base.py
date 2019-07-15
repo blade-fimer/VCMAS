@@ -9,10 +9,11 @@ monkey.patch_all()
 import gevent
 
 import ssl
+import json
 import logging
 import websocket
 
-from msg_queue import MsgQueue
+from utils.msg_queue import MsgQueue
 
 
 __all__ = ["BaseCollector"]
@@ -94,6 +95,7 @@ class BaseCollector(object):
                 logging.error("Message parsing failed for: {}".format(json.dumps(out_msg)))
         except Exception as e:
             # TODO: Handle exception
+            logging.error("Send message failed:\n{}".format(e.message))
             pass
 
     def run(self):

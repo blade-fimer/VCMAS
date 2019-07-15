@@ -80,6 +80,7 @@ class OkexCollector(BaseCollector):
             return
 
         out_msg = self.__normalize_data(out_msg)
+        logging.debug("Normalized message:\n{0}".format(out_msg))
         self.send(out_msg)
 
     def __inflate(self, data):

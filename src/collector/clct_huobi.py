@@ -56,6 +56,7 @@ class HuobiCollector(BaseCollector):
 
     def pre_processing(self, raw_msg):
         out_msg = gzip.decompress(raw_msg).decode("utf-8")
+        logging.debug("Get message:\n{0}".format(out_msg))
         out_msg = json.loads(out_msg)
         if out_msg.get("ping"):
             self.__on_ping(out_msg)
@@ -66,6 +67,7 @@ class HuobiCollector(BaseCollector):
             return
         else:
             out_msg = self.__normalize_data(out_msg)
+            logging.debug("Normalized message:\n{0}".format(out_msg))
         self.send(out_msg)
 
     def __normalize_data(self, msg):
@@ -74,8 +76,8 @@ class HuobiCollector(BaseCollector):
         {
             "vals": {
                 "huobi": {
-                    "bids": [[296.42,1.6141],[296.41,5.6102],[296.4,1.3836],[296.34,9.4443],[296.32,1.35]],
-                    "asks": [[296.45,1.95],[296.5,15.2889],[296.55,5.0],[296.56,1.5182],[296.57,1.5182]],
+                    "bids": [["296.42","1.6141"],["296.41","5.6102"],["296.4","1.3836"],["296.34","9.4443"],["296.32","1.35"]],
+                    "asks": [["296.45","1.95"],["296.5","15.2889"],["296.55","5.0"],["296.56","1.5182"],["296.57","1.5182"]],
                  },
             },
             "ts": 1559524723012 / 1000,

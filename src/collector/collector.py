@@ -8,7 +8,11 @@ from gevent import monkey
 monkey.patch_all()
 import gevent
 
+import os
+import sys
 import logging
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(path)
 
 from clct_huobi import HuobiCollector
 from clct_okex import OkexCollector

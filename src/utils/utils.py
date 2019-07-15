@@ -8,8 +8,8 @@ import os
 import sys
 
 
-def add_bin_root_to_sys_path():
-    path = os.path.join(os.path.dirname(__file__), '..')
+def add_relative_path_to_sys(p):
+    path = os.path.join(os.path.dirname(__file__), p)
     path = os.path.abspath(path)
     if path not in sys.path:
         sys.path.append(path)
