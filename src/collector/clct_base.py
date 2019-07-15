@@ -95,7 +95,7 @@ class BaseCollector(object):
                 logging.error("Message parsing failed for: {}".format(json.dumps(out_msg)))
         except Exception as e:
             # TODO: Handle exception
-            logging.error("Send message failed:\n{}".format(e.message))
+            logging.error("Send message failed:\n{}".format(e))
             pass
 
     def run(self):

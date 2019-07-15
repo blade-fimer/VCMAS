@@ -8,7 +8,7 @@ import redis
 
 
 class MsgQueue(object):
-    EXPIRE_TIME = 60
+    EXPIRE_TIME = 600
 
     def __init__(self):
         # Thread.__init__(self)
