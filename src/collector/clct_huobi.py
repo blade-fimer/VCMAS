@@ -18,7 +18,7 @@ class HuobiCollector(BaseCollector):
     SUB_ID = "haveAtest"
 
     def __init__(self,
-                 hostname="Huobi",
+                 hostname="huobi",
                  host="https://api.huobi.pro",
                  wss_host="wss://api.huobi.pro/ws"):
         BaseCollector.__init__(self, hostname=hostname, host=host, wss_host=wss_host)
@@ -82,15 +82,22 @@ class HuobiCollector(BaseCollector):
             },
             "ts": 1559524723012 / 1000,
         }
+
+        Since 2019-07-16, format change to:
+        {
+            "ts": 1559524723012 / 1000,
+            "bids": [["296.42","1.6141"],["296.41","5.6102"],["296.4","1.3836"],["296.34","9.4443"],["296.32","1.35"]],
+            "asks": [["296.45","1.95"],["296.5","15.2889"],["296.55","5.0"],["296.56","1.5182"],["296.57","1.5182"]],
+        }
+
         :param msg:
         :return:
         '''
-        out = {"vals": {"huobi": {}}}
+        out = {}
         try:
-            out["vals"]["huobi"] = {}
-            out["vals"]["huobi"]["bids"] = msg["tick"]["bids"][:5]   # Get top 5 depth data only
-            out["vals"]["huobi"]["asks"] = msg["tick"]["asks"][:5]
             out["ts"] = msg["tick"]["ts"] // 1000
+            out["bids"] = msg["tick"]["bids"][:5]   # Get top 5 depth data only
+            out["asks"] = msg["tick"]["asks"][:5]
             return out
         except Exception as e:
             logging.error(e)

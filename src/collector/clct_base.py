@@ -13,19 +13,19 @@ import json
 import logging
 import websocket
 
-from utils.msg_queue import MsgQueue
+from utils.msg_queue import MessagingMixin
 
 
 __all__ = ["BaseCollector"]
 
-class BaseCollector(object):
+class BaseCollector(MessagingMixin):
 
-    def __init__(self, hostname=None, host=None, wss_host=None):
+    def __init__(self, hostname="unknown", host=None, wss_host=None):
         self.ws = None
         self.hostname = hostname
         self.host = host
         self.wss_host = wss_host
-        self.queue = MsgQueue()
+        MessagingMixin.__init__(hostname)
 
     @staticmethod
     def DEPTH(symbol="", depth=""):
@@ -88,9 +88,9 @@ class BaseCollector(object):
 
     def send(self, out_msg):
         try:
-            key = out_msg.get("ts", "")
-            if key:
-                self.queue.add(key, json.dumps(out_msg.get("vals", {})))
+            if self.hostname:
+                self._send(out_msg)
+                # self.set(self.hostname, json.dumps(out_msg))
             else:
                 logging.error("Message parsing failed for: {}".format(json.dumps(out_msg)))
         except Exception as e:

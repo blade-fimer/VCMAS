@@ -5,11 +5,23 @@
 # @E-mail  : yuanhao12@gmail.com
 
 
-from msg_queue import MsgQueue
+from kombu import Consumer, Queue
+from kombu.mixins import ConsumerMixin
 
-class Pig():
+from msg_queue import MessagingMixin
+
+
+class Pig(ConsumerMixin):
     def __init__(self):
-        self._queue = MsgQueue()
+        self._queue = Queue('', exchange=MessagingMixin.exchanges)
 
-    def chew(self):
-        self.
+    def get_consumers(self, Consumer, channel):
+        return [
+            Consumer(self._queue, callbacks=[self.chew], accept=['json']),
+        ]
+
+    def chew(self, body, message):
+        # Dealing with the messages
+        print(body)
+        print(message)
+        pass

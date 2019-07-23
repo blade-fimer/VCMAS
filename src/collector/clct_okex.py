@@ -19,7 +19,7 @@ class OkexCollector(BaseCollector):
     EXPIRE_TIME = 12
 
     def __init__(self,
-                 hostname="Okex",
+                 hostname="okex",
                  host="https://www.okex.com/",
                  wss_host="wss://real.okex.com:10442/ws/v3"):
         BaseCollector.__init__(self, hostname=hostname, host=host, wss_host=wss_host)
@@ -92,14 +92,18 @@ class OkexCollector(BaseCollector):
         return inflated
 
     def __normalize_data(self, msg):
-        out = {"vals": {"okex": {}}}
+        '''
+        Since 2019-07-16, format changed(refer to clct_huobi.py)
+        :param msg:
+        :return:
+        '''
+        out = {}
         try:
-            out["vals"]["okex"] = {}
             # Example: "timestamp":"2019-04-16T11:03:03.712Z"
             # Ignore the timezone flag Z since it's utc time already
             out["ts"] = self.__normalize_ts(msg["data"][0]["timestamp"][:-1])
-            out["vals"]["okex"]["bids"] = list(map(lambda x:x[:2], msg["data"][0]["bids"]))   # Get top 5 depth data only
-            out["vals"]["okex"]["asks"] = list(map(lambda x:x[:2], msg["data"][0]["asks"]))
+            out["bids"] = list(map(lambda x:x[:2], msg["data"][0]["bids"]))   # Get top 5 depth data only
+            out["asks"] = list(map(lambda x:x[:2], msg["data"][0]["asks"]))
             return out
         except Exception as e:
             logging.error(e)
