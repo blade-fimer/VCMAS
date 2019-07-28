@@ -25,7 +25,7 @@ class BaseCollector(MessagingMixin):
         self.hostname = hostname
         self.host = host
         self.wss_host = wss_host
-        MessagingMixin.__init__(hostname)
+        MessagingMixin.__init__(self, hostname)
 
     @staticmethod
     def DEPTH(symbol="", depth=""):
