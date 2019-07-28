@@ -41,7 +41,7 @@ FEE = {
     },
 }
 
-threashold = 0.001
+threashold = 0.002
 
 class Pig(ConsumerMixin):
     def __init__(self):
@@ -104,7 +104,6 @@ class Pig(ConsumerMixin):
         new_ask = self._latest_vals[self._latest_key]["asks"]
         nb1_price = Decimal(str(new_bid[0][0]))
         na1_price = Decimal(str(new_ask[0][0]))
-        logging.debug("New bid: {0}, ask: {1}".format(nb1_price, na1_price))
         for key in self._latest_vals.keys():
             if key != self._latest_key:
                 try:
@@ -113,18 +112,20 @@ class Pig(ConsumerMixin):
                     # bids[0][0] is the price, bids[0][1] is the amount
                     b1_price = Decimal(str(bid[0][0]))
                     a1_price = Decimal(str(ask[0][0]))
-                    if abs((nb1_price - a1_price) / nb1_price) > threashold or \
-                                    abs((b1_price - na1_price) / b1) > threashold:
-                        logging.debug("#######Origin#######")
-                        logging.debug("Old bid: {0}, ask: {1}".format(b1_price, a1_price))
-                        logging.debug("#######Calculated#######")
-                        logging.debug("New bid price: {0}, old ask price: {1}, "
-                                     "sub is {2}, percentage is {3}".format(nb1_price,
+                    if (nb1_price - a1_price) / nb1_price > threashold or \
+                                    (b1_price - na1_price) / b1_price > threashold:
+                        logging.debug(" Detail ".center(40, '#'))
+                        logging.debug("{0}(new) bid price: {1}, {2}(old) ask price: {3}, "
+                                     "sub is {4}, percentage is {5}".format(self._latest_key,
+                                                                            nb1_price,
+                                                                            key,
                                                                             a1_price,
                                                                             (nb1_price - a1_price),
                                                                             (nb1_price - a1_price)/nb1_price))
-                        logging.debug("Old bid price: {0}, new ask price: {1}, "
-                                     "sub is {2}, percentage is {3}".format(b1_price,
+                        logging.debug("{0}(old) bid price: {1}, {2}(new) ask price: {3}, "
+                                     "sub is {4}, percentage is {5}".format(key,
+                                                                            b1_price,
+                                                                            self._latest_key,
                                                                             na1_price,
                                                                             (b1_price - na1_price),
                                                                             (b1_price - na1_price)/b1_price))
