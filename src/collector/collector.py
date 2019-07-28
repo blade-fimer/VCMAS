@@ -18,7 +18,7 @@ from clct_huobi import HuobiCollector
 from clct_okex import OkexCollector
 
 LOG_FILE = "collector.log"
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                     datefmt='%a, %Y/%m/%d %H:%M:%S',
                     filename=LOG_FILE,
