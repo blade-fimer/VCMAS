@@ -11,18 +11,27 @@ import logging
 from threading import Thread
 
 from clct_base import BaseCollector
+from utils.msg_queue import MessagingMixin
 
 
 __all__ = ['OkexCollector']
 
 class OkexCollector(BaseCollector):
     EXPIRE_TIME = 12
+    CH_CUSTOMIZE_MAPPING = {
+        "ethusdt": "ETH-USDT",
+    }
+
+    CH_NORMALIZE_MAPPING = {
+        "ETH-USDT": "ethusdt",
+    }
 
     def __init__(self,
                  hostname="okex",
                  host="https://www.okex.com/",
-                 wss_host="wss://real.okex.com:10442/ws/v3"):
-        BaseCollector.__init__(self, hostname=hostname, host=host, wss_host=wss_host)
+                 wss_host="wss://real.okex.com:10442/ws/v3",
+                 symbols=["ethusdt"]):
+        BaseCollector.__init__(self, hostname=hostname, host=host, wss_host=wss_host, symbols=symbols)
         self.ping_thread = None
         self._reset_expire_time()
 
@@ -60,11 +69,13 @@ class OkexCollector(BaseCollector):
 
     def on_open(self):
         # Able to subscribe to several channels
-        sub = {
-            "op": "subscribe",
-            "args": [OkexCollector.DEPTH()],
-        }
-        self.ws.send(json.dumps(sub))
+        for symbol in self.symbols:
+            sub = {
+                "op": "subscribe",
+                "args": [OkexCollector.DEPTH(OkexCollector.CH_CUSTOMIZE_MAPPING[symbol])],
+            }
+            self.ws.send(json.dumps(sub))
+
         self.ping_thread = Thread(target=self._ping)
         self.ping_thread.start()
 
@@ -101,6 +112,8 @@ class OkexCollector(BaseCollector):
         try:
             # Example: "timestamp":"2019-04-16T11:03:03.712Z"
             # Ignore the timezone flag Z since it's utc time already
+            out["ch"] = OkexCollector.CH_NORMALIZE_MAPPING[msg["data"][0]["instrument_id"]]
+            out["host"] = MessagingMixin.HOST_ID[self.hostname]
             out["ts"] = self.__normalize_ts(msg["data"][0]["timestamp"][:-1])
             out["bids"] = list(map(lambda x:x[:2], msg["data"][0]["bids"]))   # Get top 5 depth data only
             out["asks"] = list(map(lambda x:x[:2], msg["data"][0]["asks"]))

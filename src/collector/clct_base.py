@@ -20,12 +20,13 @@ __all__ = ["BaseCollector"]
 
 class BaseCollector(MessagingMixin):
 
-    def __init__(self, hostname="unknown", host=None, wss_host=None):
+    def __init__(self, hostname="unknown", host=None, wss_host=None, symbols=None):
         self.ws = None
         self.hostname = hostname
         self.host = host
         self.wss_host = wss_host
-        MessagingMixin.__init__(self, hostname)
+        self.symbols = symbols
+        MessagingMixin.__init__(self, symbols)
 
     @staticmethod
     def DEPTH(symbol="", depth=""):
@@ -73,7 +74,8 @@ class BaseCollector(MessagingMixin):
         # g.join()
 
     def on_error(self, error):
-        logging.error(error)
+        msg = "### ERROR on {0}: {1} ###".format(self.hostname, error)
+        logging.error(msg)
 
     def on_close(self):
         msg = "### {} closed ###".format(self.hostname)
