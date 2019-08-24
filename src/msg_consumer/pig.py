@@ -132,13 +132,19 @@ class Pig(ConsumerMixin):
                     # bids[0][0] is the price, bids[0][1] is the amount
                     b1_price = Decimal(str(bid[0][0]))
                     a1_price = Decimal(str(ask[0][0]))
-                    nb1_a1_sub_per = abs((nb1_price - a1_price) / nb1_price)
-                    b1_na1_sub_per = abs((b1_price - na1_price) / b1_price)
+
+                    '''
+                    bid - buy
+                    ask - sell
+                    Only if the buy price is higher than sell price, there is chance, not the other way.
+                    '''
+                    nb1_a1_sub_per = (nb1_price - a1_price) / nb1_price
+                    b1_na1_sub_per = (b1_price - na1_price) / b1_price
                     if nb1_a1_sub_per > threashold or b1_na1_sub_per > threashold:
                         logging.debug("{0}\n"
-                                      "Channel: {0}\n"
-                                      "New Host: {1}\n"
-                                      "Old Host: {2}".format(" Detail ".center(40, '#'),
+                                      "Channel: {1}\n"
+                                      "New Host: {2}\n"
+                                      "Old Host: {3}".format(" Detail ".center(40, '#'),
                                                              key,
                                                              MessagingMixin.ID_HOST[host],
                                                              MessagingMixin.ID_HOST[index],
