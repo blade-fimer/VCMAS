@@ -118,6 +118,8 @@ class Pig(ConsumerMixin):
         new_ask = self._latest_vals[key][host]["asks"]
         nb1_price = Decimal(str(new_bid[0][0]))
         na1_price = Decimal(str(new_ask[0][0]))
+        nb1_size = Decimal(str(new_bid[0][1]))
+        na1_size = Decimal(str(new_ask[0][1]))
         for index, val in enumerate(self._latest_vals[key]):
             if index != host and val != '':
                 try:
@@ -139,6 +141,8 @@ class Pig(ConsumerMixin):
                     # bids[0][0] is the price, bids[0][1] is the amount
                     b1_price = Decimal(str(bid[0][0]))
                     a1_price = Decimal(str(ask[0][0]))
+                    b1_size = Decimal(str(bid[0][1]))
+                    a1_size = Decimal(str(ask[0][1]))
 
                     '''
                     bid - buy
@@ -158,18 +162,26 @@ class Pig(ConsumerMixin):
                                                              ))
                         if nb1_a1_sub_per > threashold:
                             logging.debug("\n\tNew bid price: {0}\n\t"
-                                          "Old ask price: {1}\n\t"
-                                         "Sub is {2}\n\t"
-                                          "Percentage is {3}".format(nb1_price,
+                                          "New bid size: {1}\n\t"
+                                          "Old ask price: {2}\n\t"
+                                          "Old ask size: {3}\n\t"
+                                          "Sub is {4}\n\t"
+                                          "Percentage is {5}".format(nb1_price,
+                                                                     nb1_size,
                                                                      a1_price,
+                                                                     a1_size,
                                                                      (nb1_price - a1_price),
                                                                      nb1_a1_sub_per))
                         if b1_na1_sub_per > threashold:
                             logging.debug("\n\tOld bid price: {0}\n\t"
-                                          "New ask price: {1}\n\t"
-                                         "Sub is {2}\n\t"
-                                          "Percentage is {3}".format(b1_price,
+                                          "Old bid size: {1}\n\t"
+                                          "New ask price: {2}\n\t"
+                                          "New ask size: {3}\n\t"
+                                          "Sub is {4}\n\t"
+                                          "Percentage is {5}".format(b1_price,
+                                                                     b1_size,
                                                                      na1_price,
+                                                                     na1_size,
                                                                      (b1_price - na1_price),
                                                                      b1_na1_sub_per))
                         logging.info(json.dumps(self._latest_vals[key]))
