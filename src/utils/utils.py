@@ -9,6 +9,9 @@ import sys
 import logging
 import subprocess
 
+WORK_DIR = "/root/projects/VCMAS/src"
+MON_FILE = "monitor.error"
+LOG_DIR = "log"
 
 def add_relative_path_to_sys(p):
     path = os.path.join(os.path.dirname(__file__), p)
@@ -27,3 +30,8 @@ def exe(cmd_line, error_on_exit=True, excep_on_exit=True):
         logging.exception('Got exception while execute: ' + cmd_line)
         if excep_on_exit:
             raise e
+
+def prepare_run_env():
+    os.chdir(WORK_DIR)
+    if not os.path.isdir(LOG_DIR):
+        os.mkdir(LOG_DIR)

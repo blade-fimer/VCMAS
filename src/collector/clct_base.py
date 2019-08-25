@@ -8,12 +8,14 @@ from gevent import monkey
 monkey.patch_all()
 import gevent
 
+import os
 import ssl
 import json
 import logging
 import websocket
 
 from utils.msg_queue import MessagingMixin
+from utils.utils import *
 
 
 __all__ = ["BaseCollector"]
@@ -79,8 +81,10 @@ class BaseCollector(MessagingMixin):
 
     def on_close(self):
         msg = "### {} closed ###".format(self.hostname)
-        print(msg)
-        logging.info(msg)
+        if not os.path.isfile(MON_FILE):
+            fp = open(MON_FILE, 'w+')
+            fp.close()
+        logging.error(msg)
 
     def on_open(self):
         assert 0, "Not overrided"

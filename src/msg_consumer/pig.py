@@ -123,10 +123,15 @@ class Pig(ConsumerMixin):
                 try:
                     ts = val["ts"]
                     if abs(new_ts - ts) > 2:
-                        exe("ps -ef | grep collector.py | grep python3 | head -1 | awk '{print $2}' | xargs kill -9")
-                        exe("python3 /root/projects/VCMAS/src/collector/collector.py > /dev/null 2>&1 &")
-                        for key in self._exchanges:
-                            self._latest_vals[key] = ['', '']
+                        if not os.path.isfile(MON_FILE):
+                            fp = open(MON_FILE, 'w+')
+                            fp.close()
+                        return
+
+                        # exe("ps -ef | grep collector.py | grep python3 | head -1 | awk '{print $2}' | xargs kill -9")
+                        # exe("python3 /root/projects/VCMAS/src/collector/collector.py > /dev/null 2>&1 &")
+                        # for key in self._exchanges:
+                        #     self._latest_vals[key] = ['', '']
                     bid = val["bids"]
                     ask = val["asks"]
                     # bids[0][0] is the price, bids[0][1] is the amount
@@ -170,14 +175,14 @@ class Pig(ConsumerMixin):
                     logging.error("{}".format(e))
                     pass
 
-LOG_FILE = "opportunity.log"
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-                    datefmt='%a, %Y/%m/%d %H:%M:%S',
-                    filename=LOG_FILE,
-                    filemode='a')
-
 
 if __name__ == "__main__":
+    prepare_run_env()
+    LOG_FILE = "{0}/opportunity.log".format(LOG_DIR)
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                        datefmt='%a, %Y/%m/%d %H:%M:%S',
+                        filename=LOG_FILE,
+                        filemode='a')
     p = Pig()
     p.run()
