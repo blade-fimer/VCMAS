@@ -22,10 +22,12 @@ class UpbitCollector(BaseCollector):
     EXPIRE_TIME = 50
     CH_CUSTOMIZE_MAPPING = {
         "ethusdt": "USDT-ETH",
+        "btcusdt": "USDT-BTC",
     }
 
     CH_NORMALIZE_MAPPING = {
         "USDT-ETH": "ethusdt",
+        "USDT-BTC": "btcusdt",
     }
 
     def __init__(self,
@@ -38,8 +40,10 @@ class UpbitCollector(BaseCollector):
         self._reset_expire_time()
 
     @staticmethod
-    def DEPTH(symbol="USDT-ETH", depth="5"):
-        return {"type":"orderbook", "codes":[UpbitCollector.CH_CUSTOMIZE_MAPPING[symbol]]}
+    def DEPTH(symbols=["ethusdt"], depth="5"):
+        # map in python3 returns a map object while python2.x returns list alternativly
+        codes = list(map(lambda x: UpbitCollector.CH_CUSTOMIZE_MAPPING[x], symbols))
+        return {"type": "orderbook", "codes": codes}
 
     @staticmethod
     def TRADE_DETAIL(symbol="USDT-ETH"):
@@ -68,10 +72,9 @@ class UpbitCollector(BaseCollector):
 
     def on_open(self):
         # Able to subscribe to several channels
-        for symbol in self.symbols:
-            sub = [{"ticket": "{0}_{1}".format(self.hostname, symbol)},
-                   UpbitCollector.DEPTH(symbol)]
-            self.ws.send(json.dumps(sub))
+        sub = [{"ticket": self.hostname},
+               UpbitCollector.DEPTH(self.symbols)]
+        self.ws.send(json.dumps(sub))
 
         self.ping_thread = Thread(target=self._ping)
         self.ping_thread.start()

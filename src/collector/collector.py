@@ -22,10 +22,12 @@ from utils.utils import *
 
 
 def main():
-    collectors = [HuobiCollector(),
-                  OkexCollector(),
-                  UpbitCollector(),
-                  ]
+    symbols = ["ethusdt", "btcusdt"]
+    collectors = [
+        HuobiCollector(symbols=symbols),
+        OkexCollector(symbols=symbols),
+        UpbitCollector(symbols=symbols),
+    ]
     gevent.joinall([gevent.spawn(collector.run) for collector in collectors])
 
 if __name__ == "__main__":

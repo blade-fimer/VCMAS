@@ -52,7 +52,7 @@ class Pig(ConsumerMixin):
         self._queues = []
         self._latest_key = None
         self._latest_vals = {}
-        self._exchanges = ["ethusdt"]
+        self._exchanges = ["ethusdt", "btcusdt"]
         # TODO: get the members from external conf file or arguments
         for key in self._exchanges:
             self._queues.append(Queue(key,

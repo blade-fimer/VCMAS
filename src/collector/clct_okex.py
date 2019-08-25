@@ -21,10 +21,12 @@ class OkexCollector(BaseCollector):
     EXPIRE_TIME = 12
     CH_CUSTOMIZE_MAPPING = {
         "ethusdt": "ETH-USDT",
+        "btcusdt": "BTC-USDT",
     }
 
     CH_NORMALIZE_MAPPING = {
         "ETH-USDT": "ethusdt",
+        "BTC-USDT": "btcusdt",
     }
 
     def __init__(self,
