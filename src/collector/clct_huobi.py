@@ -15,9 +15,6 @@ from utils.msg_queue import MessagingMixin
 __all__ = ['HuobiCollector']
 
 class HuobiCollector(BaseCollector):
-
-    SUB_ID = "haveAtest"
-
     def __init__(self,
                  hostname="huobi",
                  host="https://api.huobi.pro",

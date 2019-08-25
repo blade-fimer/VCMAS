@@ -13,10 +13,11 @@ from kombu.pools import connections
 from kombu.common import maybe_declare
 
 class MessagingMixin(object):
-    ID_HOST = ['huobi', 'okex']
+    ID_HOST = ['huobi', 'okex', 'upbit']
     HOST_ID = {
         'huobi': 0,
         'okex': 1,
+        'upbit': 2,
     }
 
     def __init__(self, keys=[]):

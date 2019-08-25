@@ -16,12 +16,16 @@ sys.path.append(path)
 
 from clct_huobi import HuobiCollector
 from clct_okex import OkexCollector
+from clct_upbit import UpbitCollector
 
 from utils.utils import *
 
 
 def main():
-    collectors = [HuobiCollector(), OkexCollector()]
+    collectors = [HuobiCollector(),
+                  OkexCollector(),
+                  UpbitCollector(),
+                  ]
     gevent.joinall([gevent.spawn(collector.run) for collector in collectors])
 
 if __name__ == "__main__":

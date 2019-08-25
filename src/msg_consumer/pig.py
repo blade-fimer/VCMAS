@@ -65,7 +65,7 @@ class Pig(ConsumerMixin):
                                       durable=False,
                                       # auto_delete=True,
                                       max_length=10000))
-            self._latest_vals[key] = ['', '']
+            self._latest_vals[key] = ['', '', '']
 
     def get_consumers(self, Consumer, channel):
         return [
@@ -122,7 +122,9 @@ class Pig(ConsumerMixin):
             if index != host and val != '':
                 try:
                     ts = val["ts"]
-                    if abs(new_ts - ts) > 2:
+                    if index != MessagingMixin.HOST_ID["upbit"] and \
+                                    host != MessagingMixin.HOST_ID["upbit"] and \
+                                    abs(new_ts - ts) > 2:
                         if not os.path.isfile(MON_FILE):
                             fp = open(MON_FILE, 'w+')
                             fp.close()

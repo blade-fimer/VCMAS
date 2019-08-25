@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Time    : 2019/7/13 2:45 PM
+# @Time    : 2019/8/25 10:54 AM
 # @Author  : Hao Yuan
-# @E-mail  : yuanhao12@gmail.com
+# @E-mail  : paul_yuan@sphinx.work
+
 
 import json
 import time
@@ -14,49 +15,46 @@ from clct_base import BaseCollector
 from utils.msg_queue import MessagingMixin
 
 
-__all__ = ['OkexCollector']
+__all__ = ['UpbitCollector']
 
-class OkexCollector(BaseCollector):
-    # Official timeout is 30s, 12s to ensure 2 ping message sent before timeout
-    EXPIRE_TIME = 12
+class UpbitCollector(BaseCollector):
+    # Official timeout is 120s, 50s to ensure 2 ping message sent before timeout
+    EXPIRE_TIME = 50
     CH_CUSTOMIZE_MAPPING = {
-        "ethusdt": "ETH-USDT",
+        "ethusdt": "USDT-ETH",
     }
 
     CH_NORMALIZE_MAPPING = {
-        "ETH-USDT": "ethusdt",
+        "USDT-ETH": "ethusdt",
     }
 
     def __init__(self,
-                 hostname="okex",
-                 host="https://www.okex.com/",
-                 wss_host="wss://real.okex.com:10442/ws/v3",
+                 hostname="upbit",
+                 host="https://www.upbit.com/",
+                 wss_host="wss://api.upbit.com/websocket/v1",
                  symbols=["ethusdt"]):
         BaseCollector.__init__(self, hostname=hostname, host=host, wss_host=wss_host, symbols=symbols)
         self.ping_thread = None
         self._reset_expire_time()
 
     @staticmethod
-    def DEPTH(symbol="ETH-USDT", depth="5"):
-        # Okex provides only 5 entries or 200 entries of depth data
-        if depth != "5":
-            depth = ""
-        return "spot/depth{0}:{1}".format(depth, symbol)
+    def DEPTH(symbol="USDT-ETH", depth="5"):
+        return {"type":"orderbook", "codes":[UpbitCollector.CH_CUSTOMIZE_MAPPING[symbol]]}
 
     @staticmethod
-    def TRADE_DETAIL(symbol="ETH-USDT"):
+    def TRADE_DETAIL(symbol="USDT-ETH"):
         return "spot/trade:{}".format(symbol)
 
     @staticmethod
-    def KLINE_1min(symbol="ETH-USDT"):
+    def KLINE_1min(symbol="USDT-ETH"):
         return "spot/candle60s:{}".format(symbol)
 
     @staticmethod
-    def KLINE_1day(symbol="ETH-USDT"):
+    def KLINE_1day(symbol="USDT-ETH"):
         return "spot/candle86400s:{}".format(symbol)
 
     def _reset_expire_time(self):
-        self.expire_time = OkexCollector.EXPIRE_TIME
+        self.expire_time = UpbitCollector.EXPIRE_TIME
 
     def _ping(self):
         logging.debug("### Send ping ###")
@@ -71,10 +69,8 @@ class OkexCollector(BaseCollector):
     def on_open(self):
         # Able to subscribe to several channels
         for symbol in self.symbols:
-            sub = {
-                "op": "subscribe",
-                "args": [OkexCollector.DEPTH(OkexCollector.CH_CUSTOMIZE_MAPPING[symbol])],
-            }
+            sub = [{"ticket": "{0}_{1}".format(self.hostname, symbol)},
+                   UpbitCollector.DEPTH(symbol)]
             self.ws.send(json.dumps(sub))
 
         self.ping_thread = Thread(target=self._ping)
@@ -83,10 +79,11 @@ class OkexCollector(BaseCollector):
     def pre_processing(self, raw_msg):
         # Reset the timer to send ping message in case new message is received
         self._reset_expire_time()
-        out_msg = self.__inflate(raw_msg).decode("utf-8")
+        # out_msg = self.__inflate(raw_msg).decode("utf-8")
+        out_msg = raw_msg
         logging.debug("Get message:\n{0}".format(out_msg))
         out_msg = json.loads(out_msg)
-        if out_msg.get("pong"):
+        if out_msg.get("ping"):
             # self._on_ping(out_msg)
             out_msg = ""
             return
@@ -94,14 +91,6 @@ class OkexCollector(BaseCollector):
         out_msg = self.__normalize_data(out_msg)
         logging.debug("Normalized message:\n{0}".format(out_msg))
         self.send(out_msg)
-
-    def __inflate(self, data):
-        decompress = zlib.decompressobj(
-            -zlib.MAX_WBITS
-        )
-        inflated = decompress.decompress(data)
-        inflated += decompress.flush()
-        return inflated
 
     def __normalize_data(self, msg):
         '''
@@ -113,16 +102,19 @@ class OkexCollector(BaseCollector):
         try:
             # Example: "timestamp":"2019-04-16T11:03:03.712Z"
             # Ignore the timezone flag Z since it's utc time already
-            out["ch"] = OkexCollector.CH_NORMALIZE_MAPPING[msg["data"][0]["instrument_id"]]
+            out["ch"] = UpbitCollector.CH_NORMALIZE_MAPPING[msg["code"]]
             out["host"] = MessagingMixin.HOST_ID[self.hostname]
-            out["ts"] = self.__normalize_ts(msg["data"][0]["timestamp"][:-1])
-            out["bids"] = list(map(lambda x:x[:2], msg["data"][0]["bids"]))   # Get top 5 depth data only
-            out["asks"] = list(map(lambda x:x[:2], msg["data"][0]["asks"]))
+
+            # !!!Caution, upbit returned timestamp is not consistently updated
+            out["ts"] = msg["timestamp"] // 1000
+            order_book = msg["orderbook_units"]
+            out["bids"] = []
+            out["asks"] = []
+            for m in range(0, 5):
+                out["bids"].append([order_book[m]["bid_price"], order_book[m]["bid_size"]])
+                out["asks"].append([order_book[m]["ask_price"], order_book[m]["ask_size"]])
             return out
         except Exception as e:
             logging.error(e)
 
         return
-
-    def __normalize_ts(self, stime):
-        return int(time.mktime(time.strptime(stime, "%Y-%m-%dT%H:%M:%S.%f")))
