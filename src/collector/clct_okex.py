@@ -32,7 +32,7 @@ class OkexCollector(BaseCollector):
     def __init__(self,
                  hostname="okex",
                  host="https://www.okex.com/",
-                 wss_host="wss://real.okex.com:10442/ws/v3",
+                 wss_host="wss://real.okex.com:8443/ws/v3",
                  symbols=["ethusdt"]):
         BaseCollector.__init__(self, hostname=hostname, host=host, wss_host=wss_host, symbols=symbols)
         self.ping_thread = None
