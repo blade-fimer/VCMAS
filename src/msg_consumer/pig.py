@@ -30,21 +30,40 @@ or 0.0003 + 0.001 + 0.0005 = 0.0018,
 or for BTC, it's:
 0.0002 + 0.0015 + 0.00015 = 0.00185
 or 0.0003 + 0.001 + 0.00015 = 0.00145
+
+Note: Upper fees are for future exchanging, not for the trading market we need
+
+Following are the true fees we would trigger in case of trading,
+basically we will be the 'taker' since we always take the order already exist
 '''
 FEE = {
     "huobi": {
-        "maker": "0.0002",
-        "taker": "0.0003",
-        "trade": "0.0005",
+        "maker": "0.002",
+        "taker": "0.002",
     },
     "okex": {
         "maker": "0.001",
         "taker": "0.0015",
-        "trade": "0.0005",
     },
+    "upbit": {
+        "maker": "0.0015",
+        "taker": "0.0015",
+    },
+    "binance": {
+        "maker": "0.001",
+        "taker": "0.001",
+    },
+    "bitfinex": {
+        "maker": "0.001",
+        "taker": "0.002",
+    },
+    "kranken": {
+        "maker": "0.0016",
+        "taker": "0.0026",
+    }
 }
 
-threashold = 0.002
+threashold = Decimal("0.002")
 
 class Pig(ConsumerMixin):
     def __init__(self):
@@ -149,8 +168,10 @@ class Pig(ConsumerMixin):
                     ask - sell
                     Only if the buy price is higher than sell price, there is chance, not the other way.
                     '''
-                    nb1_a1_sub_per = (nb1_price - a1_price) / nb1_price
-                    b1_na1_sub_per = (b1_price - na1_price) / b1_price
+                    sub_nb1_a1 = nb1_price - a1_price
+                    sub_b1_na1 = b1_price - na1_price
+                    nb1_a1_sub_per = sub_nb1_a1 / nb1_price
+                    b1_na1_sub_per = sub_b1_na1 / b1_price
                     if nb1_a1_sub_per > threashold or b1_na1_sub_per > threashold:
                         logging.debug("{0}\n"
                                       "Channel: {1}\n"
@@ -161,29 +182,41 @@ class Pig(ConsumerMixin):
                                                              MessagingMixin.ID_HOST[index],
                                                              ))
                         if nb1_a1_sub_per > threashold:
+                            scale = min(nb1_price * nb1_size, a1_price * a1_size)
+                            profit = scale * (nb1_a1_sub_per - threashold)
                             logging.debug("\n\tNew bid price: {0}\n\t"
                                           "New bid size: {1}\n\t"
                                           "Old ask price: {2}\n\t"
                                           "Old ask size: {3}\n\t"
-                                          "Sub is {4}\n\t"
-                                          "Percentage is {5}".format(nb1_price,
-                                                                     nb1_size,
-                                                                     a1_price,
-                                                                     a1_size,
-                                                                     (nb1_price - a1_price),
-                                                                     nb1_a1_sub_per))
+                                          "Sub: {4}\n\t"
+                                          "Percentage: {5}\n\t"
+                                          "Scale: {6}\n\t"
+                                          "Potencial profit in USDT: {7}".format(nb1_price,
+                                                                                 nb1_size,
+                                                                                 a1_price,
+                                                                                 a1_size,
+                                                                                 sub_nb1_a1,
+                                                                                 nb1_a1_sub_per,
+                                                                                 scale,
+                                                                                 profit))
                         if b1_na1_sub_per > threashold:
+                            scale = min(b1_price * b1_size, na1_price * na1_size)
+                            profit = scale * (b1_na1_sub_per - threashold)
                             logging.debug("\n\tOld bid price: {0}\n\t"
                                           "Old bid size: {1}\n\t"
                                           "New ask price: {2}\n\t"
                                           "New ask size: {3}\n\t"
                                           "Sub is {4}\n\t"
-                                          "Percentage is {5}".format(b1_price,
-                                                                     b1_size,
-                                                                     na1_price,
-                                                                     na1_size,
-                                                                     (b1_price - na1_price),
-                                                                     b1_na1_sub_per))
+                                          "Percentage is {5}\n\t"
+                                          "Scale: {6}\n\t"
+                                          "Potencial profit in USDT: {7}".format(b1_price,
+                                                                                 b1_size,
+                                                                                 na1_price,
+                                                                                 na1_size,
+                                                                                 sub_b1_na1,
+                                                                                 b1_na1_sub_per,
+                                                                                 scale,
+                                                                                 profit))
                         logging.info(json.dumps(self._latest_vals[key]))
                 except Exception as e:
                     logging.error("{}".format(e))
